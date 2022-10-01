@@ -51,8 +51,10 @@ const typeDefs = gql`
   type Mutation {
     #mutations are like our post put or deletes
     login(email: String!, password: String!): Auth
+    #mutations that return Auth are returning the users info along with their unique token
     addUser(username: String!, email: String!, password: String!): Auth
     addThought(thoughtText: String!): Thought
+    #addReaction will return the parent Thougt instead of the new Reaction.
     addReaction(thoughtId: ID!, reactionBody: String!): Thought
     addFriend(friendId: ID!): User
   }

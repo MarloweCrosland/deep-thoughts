@@ -81,9 +81,8 @@ const resolvers = {
       const token = signToken(user);
       return { token, user };
     },
-    // without the { new: true } flag in User.findByIdAndUpdate(), 
-    // Mongo would return the original document instead of the updated document.
     addThought: async (parent, args, context) => {
+      //if the user can be verified, create new thought with args, add the thought to their thoughts, and return the thought.
       if (context.user) {
         const thought = await Thought.create({ ...args, username: context.user.username });
 
@@ -95,18 +94,22 @@ const resolvers = {
 
         return thought;
       }
-
+      //if the user cant be verified, tell them they need to be logged in.
       throw new AuthenticationError('You need to be logged in!');
     },
 
     addReaction: async (parent, { thoughtId, reactionBody }, context) => {
+      //if the user exists
       if (context.user) {
         const updatedThought = await Thought.findOneAndUpdate(
+          //add reaction to the thought, which you find by ID.
           { _id: thoughtId },
           { $push: { reactions: { reactionBody, username: context.user.username } } },
+          // without the { new: true } flag in User.findByIdAndUpdate(), 
+          // Mongo would return the original document instead of the updated document.
           { new: true, runValidators: true }
         );
-
+          //return the updated thought with new reaction pushed.
         return updatedThought;
       }
 
@@ -114,6 +117,7 @@ const resolvers = {
     },
     
     addFriend: async (parent, { friendId }, context) => {
+      //If the user exists, add a friend to the User's friend array by friendid.
       if (context.user) {
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user._id },
