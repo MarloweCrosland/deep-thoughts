@@ -1,3 +1,4 @@
+const path = require('path');
 //to run this development we need to have two servers running
 const express = require('express');
 //import apollo server
@@ -33,10 +34,15 @@ const startApolloServer = async (typeDefs, resolvers) => {
   server.applyMiddleware({ app });
   
 // Serve up static assets
+// First, we check to see if the Node environment is in production. 
+// If it is, we instruct the Express.js server to serve any files in the
+//  React application's build directory in the client folder
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
 }
-
+// if we make a GET request to any location on the server that doesn't 
+// have an explicit route defined, respond with the production-ready React 
+// front-end code.
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
