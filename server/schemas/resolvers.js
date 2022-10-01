@@ -2,13 +2,21 @@ const { AuthenticationError } = require('apollo-server-express');
 const { User, Thought } = require('../models');
 const { signToken } = require('../utils/auth');
 
+//resolvers are the functions we connect to each query or mutation
+//a resolver can accept 4 args : parent, args, contect, info
+//parent: if we used nexted resolvers to handle more actions, it would hold referecne to resolver
+//args: this is an object of all the values passed into a query or mutation request
+//context:if we were to need the same data to be accessible by alll resolvers (login)
+//info: extra information about the operations current state.
 const resolvers = {
 // QUERIES--------------------------------
   Query: {
     me: async (parent, args, context) => {
       if (context.user) {
         const userData = await User.findOne({ _id: context.user._id })
+        //omit the mongoose specific __v property, and password info.
           .select('-__v -password')
+          //populate the friends and thoughts so we can get associated data 
           .populate('thoughts')
           .populate('friends');
 
@@ -29,7 +37,11 @@ const resolvers = {
         .populate('friends')
         .populate('thoughts');
     },
+    // look up thoughts by username, if no username, return all thoughts.
     thoughts: async (parent, { username }) => {
+      // the parent parameter is a placeholder which wont be used
+      //we use a ternary to check if username exists, if it does,
+      //we set params to an object with a username key set to that value. if it doesnt, return empty object.
       const params = username ? { username } : {};
       return Thought.find(params).sort({ createdAt: -1 });
     },
@@ -39,6 +51,13 @@ const resolvers = {
   },
 // MUTATIONS ---------------------------------------
   Mutation: {
+    // the mongoose user model creates a new user with whatever is passed in args
+    // mutation request example: 
+    //addUser(username: "tester", password: "test1234", email: "example@gmail.com") {
+      // _id
+      //username
+      //email
+    //}
     addUser: async (parent, args) => {
       const user = await User.create(args);
       const token = signToken(user);
@@ -47,7 +66,8 @@ const resolvers = {
     },
     login: async (parent, { email, password }) => {
       const user = await User.findOne({ email });
-
+    // normally throwing an error would cause your server to crash, but graphql will
+    //catch the error and send it to the client instead using AuthenticationError
       if (!user) {
         throw new AuthenticationError('Incorrect credentials');
       }

@@ -13,6 +13,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      //match takes in regex
       match: [/.+@.+\..+/, 'Must match an email address!']
     },
     password: {
@@ -40,7 +41,8 @@ const userSchema = new Schema(
   }
 );
 
-// set up pre-save middleware to create password
+// before we save the password, we check if its new,
+//if so we modify it by hashing it to protect the user
 userSchema.pre('save', async function(next) {
   if (this.isNew || this.isModified('password')) {
     const saltRounds = 10;

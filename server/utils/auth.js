@@ -4,6 +4,8 @@ const secret = 'mysecretshhhhh';
 const expiration = '2h';
 
 module.exports = {
+  //signToken expects a user object and will add that user's
+  //username, email, and _id properties to the token
     signToken: function({ username, email, _id }) {
         const payload = { username, email, _id };
 
@@ -28,6 +30,8 @@ module.exports = {
         }
       
         try {
+          // we wrap with a try and catch so that even if the token is invalid,
+          //the user should still be able to request and see all thoughts.
           // decode and attach user data to request object
           const { data } = jwt.verify(token, secret, { maxAge: expiration });
           req.user = data;
